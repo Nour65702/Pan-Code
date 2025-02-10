@@ -23,7 +23,7 @@ class ApiResponse
     }
 
     public static function notFound(string $message = 'Not Found'): \Illuminate\Http\JsonResponse
-    
+
     {
         return response()->json([
             'message' => $message,

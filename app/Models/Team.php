@@ -8,7 +8,7 @@ use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Team extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory;
 
     protected $fillable = ['name', 'owner_id'];
 
@@ -17,10 +17,6 @@ class Team extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function tenant()
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     public function users()
     {
@@ -34,6 +30,7 @@ class Team extends Model
 
     public function members()
     {
-        return $this->hasMany(TeamUser::class);
+        return $this->belongsToMany(User::class, 'team_users', 'team_id', 'user_id');
     }
+
 }

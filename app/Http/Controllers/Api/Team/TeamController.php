@@ -32,7 +32,7 @@ class TeamController extends Controller
                     return ApiResponse::success([
                         'message' => 'Team created successfully',
                         'team' => TeamResource::make($team)
-                    ]);
+                    ], 201);
                 });
             },
             function () {

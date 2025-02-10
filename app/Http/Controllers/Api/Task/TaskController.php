@@ -43,7 +43,11 @@ class TaskController extends Controller
     public function store(TaskRequest $request, Team $team)
     {
         if (!$team->members()->where('user_id', Auth::id())->exists()) {
-            return ApiResponse::error(['message' => 'Only team members can create tasks.']);
+            return ApiResponse::error(['message' => 'Only team members can create tasks.'], 403);
+        }
+
+        if (!$team->members()->where('user_id', $request->assigned_to)->exists()) {
+            return ApiResponse::error(['message' => 'Assigned user must be a team member.'], 400);
         }
 
         return TryCatchService::execute(
@@ -51,7 +55,7 @@ class TaskController extends Controller
                 return DB::transaction(function () use ($request, $team) {
                     $validatedData = $request->validated();
                     $task = $this->taskService->createTask($team, $validatedData);
-                    return ApiResponse::success(TaskResource::make($task));
+                    return ApiResponse::success(TaskResource::make($task), 201);
                 });
             },
             function () {

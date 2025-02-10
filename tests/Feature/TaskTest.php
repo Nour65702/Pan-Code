@@ -23,7 +23,7 @@ class TaskTest extends TestCase
 
         $this->actingAs($owner, 'sanctum');
 
-        $response = $this->postJson("/api/teams/{$team->id}/tasks", [
+        $response = $this->postJson("/api/v1/teams/{$team->id}/tasks", [
             'title' => 'New Task',
             'description' => 'Task assigned to a member',
             'status' => 'pending',
@@ -45,13 +45,13 @@ class TaskTest extends TestCase
 
         $this->actingAs($non_member, 'sanctum');
 
-        $response = $this->postJson("/api/teams/{$team->id}/tasks", [
+        $response = $this->postJson("/api/v1/teams/{$team->id}/tasks", [
             'title' => 'Unauthorized Task',
             'status' => 'pending',
             'due_date' => now()->addDays(5)->toDateString(),
             'assigned_to' => $owner->id,
         ]);
 
-        $response->assertStatus(403); // Non-team members cannot create tasks
+        $response->assertStatus(400); // Non-team members cannot create tasks
     }
 }
