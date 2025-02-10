@@ -5,11 +5,15 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('teams/{team}/tasks')->controller(TaskController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::post('/', 'store');
+    });
 
-    Route::get('/teams/{team}/tasks', [TaskController::class, 'index']);
-    Route::post('/teams/{team}/tasks', [TaskController::class, 'store']);
-    Route::get('/task/show/{task}', [TaskController::class, 'show']);
-    Route::put('/tasks/{task}', [TaskController::class, 'update']);
-    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+    Route::prefix('tasks')->controller(TaskController::class)->group(function () {
+        Route::get('/{task}', 'show');
+        Route::put('/{task}', 'update');
+        Route::delete('/{task}', 'destroy');
+    });
 });

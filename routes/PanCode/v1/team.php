@@ -5,10 +5,16 @@ use App\Http\Controllers\Api\Team\TeamController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth:sanctum'])->group(function () {
 
+Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('teams', TeamController::class);
-    Route::post('/teams/{team}/invite', [InvitationController::class, 'invite']);
-    Route::post('/teams/accept-invitation', [InvitationController::class, 'acceptInvitation']);
-    Route::get('/teams/{team}/members', [TeamController::class, 'members']);
+
+    Route::prefix('teams')->group(function () {
+        Route::controller(InvitationController::class)->group(function () {
+            Route::post('{team}/invite', 'invite');
+            Route::post('accept-invitation', 'acceptInvitation');
+        });
+
+        Route::get('{team}/members', [TeamController::class, 'members']);
+    });
 });
