@@ -8,7 +8,8 @@ use App\Http\Requests\Invitation\AcceptInvitationRequest;
 use App\Http\Requests\Invitation\InviteRequest;
 use App\Models\Team;
 use App\Services\Team\InvitationService;
-
+use App\Services\TryCatchService;
+use Illuminate\Support\Facades\DB;
 
 class InvitationController extends Controller
 {
@@ -24,27 +25,35 @@ class InvitationController extends Controller
     {
         $validated = $request->validated();
 
-        $data = [
-            'email' => $validated['email'],
-            'team_id' => $team->id
-        ];
+        return TryCatchService::execute(
+            function () use ($validated, $team) {
+                return DB::transaction(function () use ($validated, $team) {
+                    $data = [
+                        'email' => $validated['email'],
+                        'team_id' => $team->id
+                    ];
 
-        $invitation = $this->invitationService->inviteUser($data);
+                    $invitation = $this->invitationService->inviteUser($data);
+                    $this->invitationService->sendInvitationNotification($invitation);
 
-        $this->invitationService->sendInvitationNotification($invitation);
-
-        return ApiResponse::success(['message' => 'Invitation sent']);
+                    return ApiResponse::success(['message' => 'Invitation sent']);
+                });
+            },
+            function () {
+                DB::rollBack();
+            }
+        );
     }
 
 
     public function acceptInvitation(AcceptInvitationRequest $request)
     {
-        try {
-            $this->invitationService->acceptInvitation($request->token);
-
-            return ApiResponse::success(['message' => 'You have successfully joined the team.']);
-        } catch (\Exception $e) {
-            return ApiResponse::error(['error' => $e->getMessage()], 400);
-        }
+        return TryCatchService::execute(
+            function () use ($request) {
+                $this->invitationService->acceptInvitation($request->token);
+                return ApiResponse::success(['message' => 'You have successfully joined the team.']);
+            },
+            function () {}
+        );
     }
 }
